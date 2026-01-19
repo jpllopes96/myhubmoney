@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { prisma } from "../lib/prisma.js";
 
 export async function listEmployees(req: Request, res: Response) {
-  const userId = (req as any).userId;
+  const userId = req.userId;
 
   const employees = await prisma.employee.findMany({
     where: { userId },
@@ -13,7 +13,7 @@ export async function listEmployees(req: Request, res: Response) {
 }
 
 export async function createEmployee(req: Request, res: Response) {
-  const userId = (req as any).userId;
+  const userId = req.userId;
   const { name } = req.body;
 
   if (!name) {
@@ -31,8 +31,8 @@ export async function createEmployee(req: Request, res: Response) {
 }
 
 export async function updateEmployee(req: Request, res: Response) {
-  const { id } = req.params;
-  const userId = (req as any).userId;
+  const id = req.params.id as string;
+  const userId = req.userId;
   const { name } = req.body;
 
   const employee = await prisma.employee.findFirst({
@@ -54,8 +54,8 @@ export async function updateEmployee(req: Request, res: Response) {
 }
 
 export async function deleteEmployee(req: Request, res: Response) {
-  const { id } = req.params;
-  const userId = (req as any).userId;
+  const id = req.params.id as string;
+  const userId = req.userId;
 
   const employee = await prisma.employee.findFirst({
     where: { id, userId },

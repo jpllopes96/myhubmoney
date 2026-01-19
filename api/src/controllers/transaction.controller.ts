@@ -1,12 +1,27 @@
 import { Request, Response } from "express";
 import { prisma } from "../lib/prisma.js";
+import { TransactionType } from "@prisma/client";
 
+/* =======================
+   Helpers
+======================= */
+function isTransactionType(value: unknown): value is TransactionType {
+  return value === "INCOME" || value === "EXPENSE";
+}
+
+/* =======================
+   List
+======================= */
 export async function listTransactions(req: Request, res: Response) {
-  const userId = (req as any).userId;
+  const userId = req.userId;
   const { type } = req.query;
 
-  let where: any = { userId };
-  if (type) {
+  const where: {
+    userId: string;
+    type?: TransactionType;
+  } = { userId };
+
+  if (typeof type === "string" && isTransactionType(type)) {
     where.type = type;
   }
 
@@ -27,8 +42,11 @@ export async function listTransactions(req: Request, res: Response) {
   return res.status(200).json(transactions);
 }
 
+/* =======================
+   Summary
+======================= */
 export async function getTransactionsSummary(req: Request, res: Response) {
-  const userId = (req as any).userId;
+  const userId = req.userId;
 
   const startOfMonth = new Date();
   startOfMonth.setDate(1);
@@ -37,9 +55,7 @@ export async function getTransactionsSummary(req: Request, res: Response) {
   const transactions = await prisma.transaction.findMany({
     where: {
       userId,
-      date: {
-        gte: startOfMonth,
-      },
+      date: { gte: startOfMonth },
     },
     select: {
       type: true,
@@ -53,28 +69,48 @@ export async function getTransactionsSummary(req: Request, res: Response) {
     balance: 0,
   };
 
-  transactions.forEach((t) => {
-    const amount = typeof t.amount === "number" ? t.amount : parseFloat(t.amount.toString());
-    if (t.type === "income") {
+  for (const t of transactions) {
+    const amount =
+      typeof t.amount === "number" ? t.amount : Number(t.amount.toString());
+
+    if (t.type === TransactionType.income) {
       summary.totalIncome += amount;
     } else {
       summary.totalExpense += amount;
     }
-  });
+  }
 
   summary.balance = summary.totalIncome - summary.totalExpense;
 
   return res.status(200).json(summary);
 }
 
+/* =======================
+   Create
+======================= */
 export async function createTransaction(req: Request, res: Response) {
-  const userId = (req as any).userId;
-  const { name, type, amount, date, description, categoryId, employeeId, isRecurring } = req.body;
+  const userId = req.userId;
 
-  if (!name || !type || !amount || !date) {
-    return res
-      .status(400)
-      .json({ error: "Nome, tipo, valor e data são obrigatórios" });
+  const {
+    name,
+    type,
+    amount,
+    date,
+    description,
+    categoryId,
+    employeeId,
+    isRecurring,
+  } = req.body;
+
+  if (
+    typeof name !== "string" ||
+    !isTransactionType(type) ||
+    typeof amount !== "number" ||
+    !date
+  ) {
+    return res.status(400).json({
+      error: "Dados inválidos para criação da transação",
+    });
   }
 
   const transaction = await prisma.transaction.create({
@@ -84,10 +120,10 @@ export async function createTransaction(req: Request, res: Response) {
       type,
       amount,
       date: new Date(date),
-      description,
-      categoryId: categoryId || null,
-      employeeId: employeeId || null,
-      isRecurring: isRecurring || false,
+      description: typeof description === "string" ? description : null,
+      categoryId: typeof categoryId === "string" ? categoryId : null,
+      employeeId: typeof employeeId === "string" ? employeeId : null,
+      isRecurring: Boolean(isRecurring),
     },
     include: {
       category: {
@@ -103,10 +139,28 @@ export async function createTransaction(req: Request, res: Response) {
   return res.status(201).json(transaction);
 }
 
+/* =======================
+   Update
+======================= */
 export async function updateTransaction(req: Request, res: Response) {
-  const { id } = req.params;
-  const userId = (req as any).userId;
-  const { name, type, amount, date, description, categoryId, employeeId, isRecurring } = req.body;
+  const userId = req.userId;
+
+  const idParam = req.params.id;
+  if (typeof idParam !== "string") {
+    return res.status(400).json({ error: "ID inválido" });
+  }
+  const id = idParam;
+
+  const {
+    name,
+    type,
+    amount,
+    date,
+    description,
+    categoryId,
+    employeeId,
+    isRecurring,
+  } = req.body;
 
   const transaction = await prisma.transaction.findFirst({
     where: { id, userId },
@@ -119,14 +173,20 @@ export async function updateTransaction(req: Request, res: Response) {
   const updated = await prisma.transaction.update({
     where: { id },
     data: {
-      ...(name && { name }),
-      ...(type && { type }),
-      ...(amount && { amount }),
+      ...(typeof name === "string" && { name }),
+      ...(isTransactionType(type) && { type }),
+      ...(typeof amount === "number" && { amount }),
       ...(date && { date: new Date(date) }),
-      ...(description !== undefined && { description }),
-      ...(categoryId !== undefined && { categoryId: categoryId || null }),
-      ...(employeeId !== undefined && { employeeId: employeeId || null }),
-      ...(isRecurring !== undefined && { isRecurring }),
+      ...(description !== undefined && {
+        description: typeof description === "string" ? description : null,
+      }),
+      ...(categoryId !== undefined && {
+        categoryId: typeof categoryId === "string" ? categoryId : null,
+      }),
+      ...(employeeId !== undefined && {
+        employeeId: typeof employeeId === "string" ? employeeId : null,
+      }),
+      ...(isRecurring !== undefined && { isRecurring: Boolean(isRecurring) }),
     },
     include: {
       category: {
@@ -142,9 +202,17 @@ export async function updateTransaction(req: Request, res: Response) {
   return res.status(200).json(updated);
 }
 
+/* =======================
+   Delete
+======================= */
 export async function deleteTransaction(req: Request, res: Response) {
-  const { id } = req.params;
-  const userId = (req as any).userId;
+  const userId = req.userId;
+
+  const idParam = req.params.id;
+  if (typeof idParam !== "string") {
+    return res.status(400).json({ error: "ID inválido" });
+  }
+  const id = idParam;
 
   const transaction = await prisma.transaction.findFirst({
     where: { id, userId },
@@ -158,5 +226,7 @@ export async function deleteTransaction(req: Request, res: Response) {
     where: { id },
   });
 
-  return res.status(200).json({ message: "Transação excluída com sucesso" });
+  return res.status(200).json({
+    message: "Transação excluída com sucesso",
+  });
 }

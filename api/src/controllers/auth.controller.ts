@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+import * as jwt from "jsonwebtoken";
 import { prisma } from "../lib/prisma.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
@@ -83,7 +83,7 @@ export async function signup(req: Request, res: Response) {
 
 export async function changePassword(req: Request, res: Response) {
   const { newPassword } = req.body;
-  const userId = (req as any).userId;
+  const userId = req.userId;
 
   if (!newPassword) {
     return res.status(400).json({ error: "Nova senha é obrigatória" });
@@ -106,7 +106,7 @@ export async function changePassword(req: Request, res: Response) {
 }
 
 export async function getCurrentUser(req: Request, res: Response) {
-  const userId = (req as any).userId;
+  const userId = req.userId;
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
