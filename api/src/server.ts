@@ -10,7 +10,13 @@ import adminRoutes from "./routes/admin.js";
 
 const app = express();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || "*",
+    credentials: true,
+  }),
+);
+
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
@@ -19,6 +25,8 @@ app.use("/api/transactions", transactionsRoutes);
 app.use("/api/employees", employeesRoutes);
 app.use("/api/admin", adminRoutes);
 
-app.listen(3333, () => {
-  console.log("🔥 Backend rodando em http://localhost:3333");
+const PORT = process.env.PORT || 3333;
+
+app.listen(PORT, () => {
+  console.log(`🔥 Backend rodando na porta ${PORT}`);
 });
