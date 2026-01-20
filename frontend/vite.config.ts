@@ -33,7 +33,7 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
     allowedHosts: [
       "myhubmoney-front-production.up.railway.app",
-      "gestor.jplab.com.br",
+      "gestor.jplabs.com.br",
     ],
   },
 
