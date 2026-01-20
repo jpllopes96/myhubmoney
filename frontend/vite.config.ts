@@ -23,24 +23,18 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 
 export default defineConfig(({ mode }) => ({
+  base: "/",
   server: {
     host: "::",
     port: 8080,
+    allowedHosts: ["gestor.jplabs.com.br", ".up.railway.app"],
   },
-
   preview: {
-    host: "::",
-    port: 8080,
-    allowedHosts: [
-      "myhubmoney-front-production.up.railway.app",
-      "gestor.jplabs.com.br",
-    ],
+    allowedHosts: ["gestor.jplabs.com.br", ".up.railway.app"],
   },
-
   plugins: [react(), mode === "development" && componentTagger()].filter(
     Boolean,
   ),
-
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
