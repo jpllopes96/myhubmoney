@@ -1,17 +1,21 @@
-import { useState } from 'react';
-import { PageLayout } from '@/components/layout/PageLayout';
-import { CategoryForm } from '@/components/CategoryForm';
-import { Button } from '@/components/ui/button';
-import { useCategories, useDeleteCategory, Category } from '@/hooks/useCategories';
-import { Plus, MoreVertical, TrendingUp, TrendingDown } from 'lucide-react';
+import { useState } from "react";
+import { PageLayout } from "@/components/layout/PageLayout";
+import { CategoryForm } from "@/components/CategoryForm";
+import { Button } from "@/components/ui/button";
+import {
+  useCategories,
+  useDeleteCategory,
+  Category,
+} from "@/hooks/useCategories";
+import { Plus, MoreVertical, TrendingUp, TrendingDown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils';
+} from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
 export default function Categories() {
   const [formOpen, setFormOpen] = useState(false);
@@ -30,18 +34,25 @@ export default function Categories() {
     if (!open) setEditCategory(null);
   };
 
-  const incomeCategories = categories?.filter((c) => c.type === 'income') || [];
-  const expenseCategories = categories?.filter((c) => c.type === 'expense') || [];
+  const incomeCategories = categories?.filter((c) => c.type === "income") || [];
+  const expenseCategories =
+    categories?.filter((c) => c.type === "expense") || [];
 
-  const CategoryList = ({ items, type }: { items: Category[]; type: 'income' | 'expense' }) => (
+  const CategoryList = ({
+    items,
+    type,
+  }: {
+    items: Category[];
+    type: "income" | "expense";
+  }) => (
     <div className="space-y-2">
       <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-        {type === 'income' ? (
+        {type === "income" ? (
           <TrendingUp className="h-4 w-4 text-income" />
         ) : (
           <TrendingDown className="h-4 w-4 text-expense" />
         )}
-        {type === 'income' ? 'Entradas' : 'Despesas'}
+        {type === "income" ? "Entradas" : "Despesas"}
       </div>
       {items.length > 0 ? (
         items.map((category) => (
@@ -78,7 +89,7 @@ export default function Categories() {
         ))
       ) : (
         <p className="py-2 text-sm text-muted-foreground">
-          Nenhuma categoria de {type === 'income' ? 'entrada' : 'despesa'}
+          Nenhuma categoria de {type === "income" ? "entrada" : "despesa"}
         </p>
       )}
     </div>
@@ -87,7 +98,10 @@ export default function Categories() {
   return (
     <PageLayout title="Categorias" subtitle="Organize suas transações">
       <div className="space-y-6">
-        <Button onClick={() => setFormOpen(true)} className="w-full gradient-primary">
+        <Button
+          onClick={() => setFormOpen(true)}
+          className="w-full gradient-primary"
+        >
           <Plus className="mr-2 h-4 w-4" />
           Nova Categoria
         </Button>

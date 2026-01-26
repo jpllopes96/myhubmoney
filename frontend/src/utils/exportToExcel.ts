@@ -1,87 +1,97 @@
-import * as XLSX from 'xlsx';
-import { Transaction } from '@/hooks/useTransactions';
-import { format, parseISO } from 'date-fns';
+import * as XLSX from "xlsx";
+import { Transaction } from "@/hooks/useTransactions";
+import { format, parseISO } from "date-fns";
+
+/* =========================
+   Helpers
+========================= */
+
+const formatDateSafe = (date?: string | null) => {
+  if (!date) return "";
+
+  const parsed = parseISO(date);
+  return isNaN(parsed.getTime()) ? "" : format(parsed, "dd/MM/yyyy");
+};
+
+const formatAmount = (amount: unknown) => {
+  const value = Number(amount);
+  if (isNaN(value)) return "0,00";
+  return value.toFixed(2).replace(".", ",");
+};
+
+/* =========================
+   Prepare Data
+========================= */
 
 const prepareTransactionData = (transactions: Transaction[]) => {
   return transactions.map((t) => ({
-    'Tipo': t.type === 'income' ? 'Entrada' : 'Despesa',
-    'Nome': t.name,
-    'Categoria': t.category?.name || 'Sem categoria',
-    'Valor (R$)': Number(t.amount).toFixed(2).replace('.', ','),
-    'Data': format(parseISO(t.date), 'dd/MM/yyyy'),
-    'Descrição': t.description || '',
-    'Recorrente': t.is_recurring ? 'Sim' : 'Não',
-    'Criado em': format(parseISO(t.created_at), 'dd/MM/yyyy HH:mm'),
+    Tipo: t.type === "income" ? "Entrada" : "Despesa",
+    Nome: t.name,
+    Categoria: t.category?.name ?? "Sem categoria",
+    "Valor (R$)": formatAmount(t.amount),
+    Data: formatDateSafe(t.date),
+    Descrição: t.description ?? "",
   }));
 };
 
+/* =========================
+   Export single type
+========================= */
+
 export const exportTransactionsToExcel = (
   transactions: Transaction[],
-  type: 'income' | 'expense'
+  type: "income" | "expense",
 ) => {
-  const typeName = type === 'income' ? 'Entradas' : 'Despesas';
-  
-  // Prepare data for Excel (without 'Tipo' column for single type)
+  const typeName = type === "income" ? "Entradas" : "Despesas";
+
   const data = transactions.map((t) => ({
-    'Nome': t.name,
-    'Categoria': t.category?.name || 'Sem categoria',
-    'Valor (R$)': Number(t.amount).toFixed(2).replace('.', ','),
-    'Data': format(parseISO(t.date), 'dd/MM/yyyy'),
-    'Descrição': t.description || '',
-    'Recorrente': t.is_recurring ? 'Sim' : 'Não',
-    'Criado em': format(parseISO(t.created_at), 'dd/MM/yyyy HH:mm'),
+    Nome: t.name,
+    Categoria: t.category?.name ?? "Sem categoria",
+    "Valor (R$)": formatAmount(t.amount),
+    Data: formatDateSafe(t.date),
+    Descrição: t.description ?? "",
   }));
 
-  // Create worksheet
   const worksheet = XLSX.utils.json_to_sheet(data);
 
-  // Set column widths
-  worksheet['!cols'] = [
+  worksheet["!cols"] = [
     { wch: 30 }, // Nome
     { wch: 20 }, // Categoria
     { wch: 15 }, // Valor
     { wch: 12 }, // Data
     { wch: 40 }, // Descrição
-    { wch: 12 }, // Recorrente
-    { wch: 18 }, // Criado em
   ];
 
-  // Create workbook
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, typeName);
 
-  // Generate filename with current date
-  const fileName = `${typeName}_${format(new Date(), 'dd-MM-yyyy')}.xlsx`;
+  const fileName = `${typeName}_${format(new Date(), "dd-MM-yyyy")}.xlsx`;
 
-  // Download file
   XLSX.writeFile(workbook, fileName);
 };
+
+/* =========================
+   Export all
+========================= */
 
 export const exportAllTransactionsToExcel = (transactions: Transaction[]) => {
   const data = prepareTransactionData(transactions);
 
-  // Create worksheet
   const worksheet = XLSX.utils.json_to_sheet(data);
 
-  // Set column widths
-  worksheet['!cols'] = [
+  worksheet["!cols"] = [
     { wch: 10 }, // Tipo
     { wch: 30 }, // Nome
     { wch: 20 }, // Categoria
     { wch: 15 }, // Valor
     { wch: 12 }, // Data
     { wch: 40 }, // Descrição
-    { wch: 12 }, // Recorrente
-    { wch: 18 }, // Criado em
   ];
 
-  // Create workbook
   const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Transações');
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Transações");
 
-  // Generate filename with current date
-  const fileName = `Transacoes_${format(new Date(), 'dd-MM-yyyy')}.xlsx`;
+  const fileName = `Transacoes_${format(new Date(), "dd-MM-yyyy")}.xlsx`;
 
-  // Download file
   XLSX.writeFile(workbook, fileName);
 };

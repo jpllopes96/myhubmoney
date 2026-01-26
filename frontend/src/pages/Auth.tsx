@@ -1,28 +1,28 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Wallet2, Mail, Lock } from 'lucide-react';
-import { toast } from 'sonner';
-import { z } from 'zod';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Wallet2, Mail, Lock } from "lucide-react";
+import { toast } from "sonner";
+import { z } from "zod";
 
 const loginSchema = z.object({
-  email: z.string().email('Email inválido'),
-  password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
+  email: z.string().email("Email inválido"),
+  password: z.string().min(6, "Senha deve ter no mínimo 6 caracteres"),
 });
 
 export default function Auth() {
   const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const navigate = useNavigate();
   const { signIn, user } = useAuth();
 
   // Redirect if already logged in
   if (user) {
-    navigate('/dashboard');
+    navigate("/dashboard");
     return null;
   }
 
@@ -34,13 +34,13 @@ export default function Auth() {
       const validated = loginSchema.parse({ email, password });
       const { error } = await signIn(validated.email, validated.password);
       if (error) {
-        if (error.message.includes('Invalid login credentials')) {
-          toast.error('Email ou senha incorretos');
+        if (error.message.includes("Invalid login credentials")) {
+          toast.error("Email ou senha incorretos");
         } else {
-          toast.error('Erro ao fazer login');
+          toast.error("Erro ao fazer login");
         }
       } else {
-        navigate('/dashboard');
+        navigate("/dashboard");
       }
     } catch (err) {
       if (err instanceof z.ZodError) {
@@ -100,8 +100,12 @@ export default function Auth() {
               </div>
             </div>
 
-            <Button type="submit" className="w-full gradient-primary" disabled={loading}>
-              {loading ? 'Carregando...' : 'Entrar'}
+            <Button
+              type="submit"
+              className="w-full gradient-primary"
+              disabled={loading}
+            >
+              {loading ? "Carregando..." : "Entrar"}
             </Button>
           </form>
 
