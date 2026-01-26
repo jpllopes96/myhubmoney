@@ -6,7 +6,7 @@ import { TransactionType } from "@prisma/client";
    Helpers
 ======================= */
 function isTransactionType(value: unknown): value is TransactionType {
-  return value === "INCOME" || value === "EXPENSE";
+  return value === "income" || value === "expense";
 }
 
 /* =======================

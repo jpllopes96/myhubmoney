@@ -6,7 +6,7 @@ import { CategoryType } from "@prisma/client";
    Helpers
 ======================= */
 function isCategoryType(value: unknown): value is CategoryType {
-  return value === "INCOME" || value === "EXPENSE";
+  return value === "income" || value === "expense";
 }
 
 /* =======================

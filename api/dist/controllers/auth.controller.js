@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import * as jwt from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { prisma } from "../lib/prisma.js";
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 export async function login(req, res) {

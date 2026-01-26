@@ -8,8 +8,24 @@ import transactionsRoutes from "./routes/transactions.js";
 import employeesRoutes from "./routes/employees.js";
 import adminRoutes from "./routes/admin.js";
 const app = express();
+const allowedOrigins = [
+    process.env.FRONTEND_URL,
+    "http://localhost:4173",
+    "http://127.0.0.1:4173",
+    "http://127.0.0.1:3333",
+    "http://localhost:3333",
+    "https://gestor.jplabs.com.br",
+    "https://myhubmoney-front-production.up.railway.app",
+];
 app.use(cors({
-    origin: process.env.FRONTEND_URL || "*",
+    origin: (origin, callback) => {
+        if (!origin)
+            return callback(null, true); // Postman / SSR
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
 }));
 app.use(express.json());
