@@ -113,13 +113,15 @@ export async function createTransaction(req: Request, res: Response) {
     });
   }
 
+  const [year, month, day] = date.split("-").map(Number);
+
   const transaction = await prisma.transaction.create({
     data: {
       userId,
       name,
       type,
       amount,
-      date: new Date(date),
+      date: new Date(year, month - 1, day, 12, 0, 0),
       description: typeof description === "string" ? description : null,
       categoryId: typeof categoryId === "string" ? categoryId : null,
       employeeId: typeof employeeId === "string" ? employeeId : null,
@@ -176,7 +178,11 @@ export async function updateTransaction(req: Request, res: Response) {
       ...(typeof name === "string" && { name }),
       ...(isTransactionType(type) && { type }),
       ...(typeof amount === "number" && { amount }),
-      ...(date && { date: new Date(date) }),
+      ...(date &&
+        (() => {
+          const [year, month, day] = date.split("-").map(Number);
+          return { date: new Date(year, month - 1, day, 12, 0, 0) };
+        })()),
       ...(description !== undefined && {
         description: typeof description === "string" ? description : null,
       }),
